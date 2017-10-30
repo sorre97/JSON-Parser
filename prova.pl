@@ -1,3 +1,0 @@
-%%% -*- Mode: prolog -*-
-
-cacca
