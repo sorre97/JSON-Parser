@@ -32,6 +32,11 @@ is_object(AsciiList) :-
     is_member(RestModified),
     !.
 
+% MEMBERS definition
+% is_members/1
+is_members(AsciiList) :-
+    is_pair(AsciiList). %__________________________________________________________continua qui
+
 %%%% Helper Functions Definition
 
 % Delete Last definition
@@ -46,3 +51,6 @@ delete_last(List, Ris, Element) :-
     reverse(T, Ris).
 
 %%%% End JSON-Parser.pl
+%
+%   % is_pair ritorna due valori, l'oggetto parsato e una lsita che contiene tutto ciò che c'è dopo la , compresa, se il primo elemento è una virgola
+% richiamo is_member, se ho lista vuota ho solo un pair e se non ho nessuno dei due casi fallisco, ho es 123.123a
