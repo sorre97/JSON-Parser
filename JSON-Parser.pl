@@ -67,15 +67,15 @@ is_value(AsciiList, Rest) :-
 is_value(AsciiList, Rest) :-
         is_number(AsciiList, Rest).
     
-/*
+
+/* 
 is_value(AsciiList, Rest) :-
         is_JSON(AsciiList, Rest),
     !.
 */
-   
+
 % NUMBER definition
 % is_number/2
-
 is_number(AsciiList, Rest) :-
         parse_int(AsciiList, Num, MoreInput),
     !.
