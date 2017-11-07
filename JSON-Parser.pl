@@ -4,7 +4,7 @@
 
 % JSON parse definition
 % json_parse/2
-json_parse(String, JSONString) :-
+json_parse(String, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****************
     string_codes(String, StringCodes),
     is_JSON(StringCodes).
     
@@ -14,9 +14,11 @@ is_JSON(X) :-
     is_object(X),
     !.
 
+/*
 is_JSON(X) :-
     is_array(X),
     !.
+*/
 
 % OBJECT definition
 % is_object/1
@@ -37,7 +39,7 @@ is_object(AsciiList) :-
 is_members(AsciiList) :-
     is_pair(AsciiList, [0', | Rest]),
     !,  % to check
-    is_member(Rest).
+    is_members(Rest).
     
 is_members(AsciiList) :-
     is_pair(AsciiList, []),
