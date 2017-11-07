@@ -77,11 +77,11 @@ is_value(AsciiList, Rest) :-
 % is_number/2
 
 is_number(AsciiList, Rest) :-
-        parseInt(AsciiList, Num, MoreInput),
+        parse_int(AsciiList, Num, MoreInput),
     !.
     
 is_number(AsciiList, Rest) :-
-        parseFloat(AsciiList, Num, MoreInput),
+        parse_float(AsciiList, Num, MoreInput),
     !.
 
 %%%% Helper Functions Definitions
@@ -135,13 +135,23 @@ parse_int(List, Integer, MoreInput) :-
     parse_int1(List1, ListNum, MoreInput),
     number_codes(Integer, ListNum).
     
-
 parse_int1([X | Xs], [X | Acc], MoreInput) :-
         is_digit(X),
         !,
     parse_int1(Xs, Acc, MoreInput).
     
 parse_int1(MoreInput, [], MoreInput).
+
+parse_float(List, Float, MoreInput) :-
+        skip_white(List, List1),
+    parse_int1(List1, IntegerCodes, [0'. | Rest]),
+    parse_int1(Rest, DecimalCodes, MoreInput),
+    IntegerCodes \= [],
+    DecimalCodes \= [],
+    append(IntegerCodes, [0'.], FirstPart),
+    append(FirstPart, DecimalCodes, FloatCodes),
+    number_codes(Float, FloatCodes).
+    
         
 
 
