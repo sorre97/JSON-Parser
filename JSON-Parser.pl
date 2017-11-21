@@ -15,7 +15,7 @@ is_JSON(X) :-
     !.
 
 /*
-is_JSON(X) :-	%***************** DA IMPLEMENTARE *****************
+is_JSON(X) :-   %***************** DA IMPLEMENTARE *****************
     is_array(X),
     !.
 */
@@ -55,18 +55,21 @@ is_pair(AsciiList, Rest) :-
 % is_string/2
 is_string([0'" | AsciiList], Rest) :-
     skip_chars(AsciiList, Rest).
+    
+is_string([0'' | AsciiList], Rest) :-
+    skip_chars(AsciiList, Rest).
         
 % VALUE definition
 % is_value/2
 is_value(AsciiList, Rest) :-
-	is_string(AsciiList, Rest),
+    is_string(AsciiList, Rest),
     !.
     
 is_value(AsciiList, Rest) :-
     is_number(AsciiList, Rest).
     
 /* 
-is_value(AsciiList, Rest) :-	%***************** DA IMPLEMENTARE *****************
+is_value(AsciiList, Rest) :-    %***************** DA IMPLEMENTARE *****************
     is_JSON(AsciiList, Rest),
     !.
 */
@@ -87,7 +90,7 @@ is_number(AsciiList, Rest) :-
 % delete_last/3
 /*  This predicate operates on List and 
     returns two elements, Ris which is 
-	List without the last element and
+    List without the last element and
     Element which is the removed element    */
     
 delete_last(List, Ris, Element) :-
@@ -105,6 +108,15 @@ skip_chars([X | Xs], Ris) :-
     
 skip_chars([X | Xs], Xs) :-
     X = 0'",
+    !.
+    
+skip_chars([X | Xs], Ris) :-
+    X \= 0'',
+    !,
+    skip_chars(Xs, Ris).
+    
+skip_chars([X | Xs], Xs) :-
+    X = 0'',
     !.
     
 % Skip White Spaces definition
@@ -132,13 +144,13 @@ parse_int(List, Integer, MoreInput) :-
     
 parse_int1([X | Xs], [X | Acc], MoreInput) :-
     is_digit(X),
-	!,
+    !,
     parse_int1(Xs, Acc, MoreInput).
     
 parse_int1(MoreInput, [], MoreInput).
 
 parse_float(List, Float, MoreInput) :-
-	skip_white(List, List1),
+    skip_white(List, List1),
     parse_int1(List1, IntegerCodes, [0'. | Rest]),
     parse_int1(Rest, DecimalCodes, MoreInput),
     IntegerCodes \= [],
@@ -152,5 +164,6 @@ parse_float(List, Float, MoreInput) :-
 
     
 %%%% End JSON-Parser.pl
+
 
 
