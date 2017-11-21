@@ -4,46 +4,44 @@
 
 % JSON parse definition
 % json_parse/2
-json_parse(String, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****************
-    string_codes(String, StringCodes),
-    is_JSON(StringCodes).
+json_parse(Atom, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****************
+    atomic(Atom),
+    string_codes(Atom, StringCodes),
+    is_JSON(StringCodes, _).
     
 % JSON object definition
-% is_JSON/1
-is_JSON(X) :-
-    is_object(X),
+% is_JSON/2
+
+is_JSON(AsciiList, _) :-
+    is_object(AsciiList, []),
+    !.
+    
+is_JSON(AsciiList, Rest) :-
+    is_object(AsciiList, Rest),
     !.
 
 /*
-is_JSON(X) :-   %***************** DA IMPLEMENTARE *****************
-    is_array(X),
+is_JSON(X, Rest) :-   %***************** DA IMPLEMENTARE *****************
+    is_array(X, Rest),
     !.
 */
 
-% OBJECT definition
-% is_object/1
-is_object([X, Y]) :-
-    X = 0'{,
-    Y = 0'},
+
+is_object([0'{ | AsciiList], Rest) :-   % Caso di più object o ultimo
+    is_member(AsciiList, [0'} | Rest]),
     !.
     
-is_object(AsciiList) :-
-    AsciiList = [0'{ | Rest],
-    delete_last(Rest, RestModified, LastElement),
-    LastElement = 0'},
-    is_members(RestModified),
-    !.
-    
+
 % MEMBERS definition
-% is_members/1
-is_members(AsciiList) :-
+% is_members/2
+is_members(AsciiList, Rest2) :-
     is_pair(AsciiList, [0', | Rest]),
-    !,  % to check
-    is_members(Rest).
+    !,  
+    is_members(Rest, Rest2).
     
-is_members(AsciiList) :-
-    is_pair(AsciiList, []),
-    !. % to check
+is_members(AsciiList, Rest) :-
+    is_pair(AsciiList, Rest),
+    !. 
     
 % PAIR definition
 % is_pair/2 
@@ -83,17 +81,6 @@ is_number(AsciiList, Rest) :-
     !.
 
 %%%% Helper Functions Definitions
-
-% Delete Last definition
-% delete_last/3
-/*  This predicate operates on List and 
-    returns two elements, Ris which is 
-    List without the last element and
-    Element which is the removed element    */
-    
-delete_last(List, Ris, Element) :-
-    reverse(List, [Element | T]),
-    reverse(T, Ris).
     
 % SKIP CHARS
 % skip_chars/2
@@ -157,11 +144,12 @@ parse_float(List, Float, MoreInput) :-
     append(FirstPart, DecimalCodes, FloatCodes),
     number_codes(Float, FloatCodes).
     
-        
-
-
     
 %%%% End JSON-Parser.pl
+
+
+
+
 
 
 
