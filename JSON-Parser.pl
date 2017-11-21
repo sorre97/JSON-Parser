@@ -57,7 +57,7 @@ is_string([0'" | AsciiList], Rest) :-
     skip_chars(AsciiList, Rest).
     
 is_string([0'' | AsciiList], Rest) :-
-    skip_chars(AsciiList, Rest).
+    skip_chars1(AsciiList, Rest).
         
 % VALUE definition
 % is_value/2
@@ -68,11 +68,9 @@ is_value(AsciiList, Rest) :-
 is_value(AsciiList, Rest) :-
     is_number(AsciiList, Rest).
     
-/* 
-is_value(AsciiList, Rest) :-    %***************** DA IMPLEMENTARE *****************
+is_value(AsciiList, Rest) :-
     is_JSON(AsciiList, Rest),
     !.
-*/
 
 % NUMBER definition
 % is_number/2
@@ -110,12 +108,12 @@ skip_chars([X | Xs], Xs) :-
     X = 0'",
     !.
     
-skip_chars([X | Xs], Ris) :-
+skip_chars1([X | Xs], Ris) :-
     X \= 0'',
     !,
     skip_chars(Xs, Ris).
     
-skip_chars([X | Xs], Xs) :-
+skip_chars1([X | Xs], Xs) :-
     X = 0'',
     !.
     
@@ -164,6 +162,7 @@ parse_float(List, Float, MoreInput) :-
 
     
 %%%% End JSON-Parser.pl
+
 
 
 
