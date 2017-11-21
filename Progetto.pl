@@ -4,7 +4,7 @@
 
 % JSON parse definition
 % json_parse/2
-json_parse(String, _) :-
+json_parse(String, _) :-		<-----------MODIFICA
     string(String),
     !,
     fail.
@@ -30,7 +30,7 @@ is_JSON(X, Rest) :-   %***************** DA IMPLEMENTARE *****************
     is_array(X, Rest),
     !.
 */
-is_object([0'{, 0'} | Xs], Xs) :-
+is_object([0'{, 0'} | Xs], Xs) :-		<------------------MODIFICA
 	!.
 
 is_object([0'{ | AsciiList], Rest) :-   % Caso di più object o ultimo
