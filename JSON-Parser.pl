@@ -17,13 +17,12 @@ is_JSON(AsciiList, Rest) :-
     is_object(AsciiList, Rest),
     !.
 
-/*
-is_JSON(X, Rest) :-   %***************** DA IMPLEMENTARE *****************
-    is_array(X, Rest),
+is_JSON(AsciiList, Rest) :-   
+        is_array(AsciiList, Rest),
     !.
-*/
 
-% is_object definition
+
+% OBJECT definition
 % is_object/2
 
 is_object([0'{, 0'} | Xs], Xs) :-
@@ -33,6 +32,26 @@ is_object([0'{ | AsciiList], Rest) :-   % Caso di più object o ultimo
     is_members(AsciiList, [0'} | Rest]),
     !.
 
+% ARRAY definition
+% is_array/2
+
+is_array([0'[, 0'] | Xs], Xs) :-
+    !.
+
+is_array([0'[ | AsciiList], Rest) :-   % Caso di più array o ultimo
+    is_elements(AsciiList, [0'] | Rest]),
+    !.
+
+% ELEMENTS definition
+% is_elements/2
+is_elements(AsciiList, Rest2) :-
+    is_value(AsciiList, [0', | Rest]),
+    !,
+    is_elements(Rest, Rest2).
+
+is_elements(AsciiList, Rest) :-
+    is_value(AsciiList, Rest),
+    !.
 
 % MEMBERS definition
 % is_members/2
@@ -130,6 +149,7 @@ skip_white(List, List).
 parse_int(List, Integer, MoreInput) :-
     skip_white(List, List1),
     parse_int1(List1, ListNum, MoreInput),
+    ListNum \= [],
     number_codes(Integer, ListNum).
 
 parse_int1([X | Xs], [X | Acc], MoreInput) :-
@@ -137,7 +157,8 @@ parse_int1([X | Xs], [X | Acc], MoreInput) :-
     !,
     parse_int1(Xs, Acc, MoreInput).
 
-parse_int1(MoreInput, [], MoreInput).
+parse_int1(MoreInput, [], MoreInput) :-
+    !.
 
 parse_float(List, Float, MoreInput) :-
     skip_white(List, List1),
