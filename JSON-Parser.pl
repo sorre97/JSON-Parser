@@ -8,19 +8,22 @@
 json_parse(Atom, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****************
     atom(Atom),
     atom_codes(Atom, AtomCodes),
-    is_JSON(AtomCodes, _).
+    is_JSON(AtomCodes, Rest),
+    skip_white(Rest, []).
 
 % JSON object definition
 % is_JSON/2
 
-is_JSON(AsciiList, Rest) :-
+is_JSON(AsciiList, Rest1) :-
         skip_white(AsciiList, AsciiList1),
     is_object(AsciiList1, Rest),
+    skip_white(Rest, Rest1),
     !.
 
-is_JSON(AsciiList, Rest) :- 
+is_JSON(AsciiList, Rest1) :- 
         skip_white(AsciiList, AsciiList1),
         is_array(AsciiList1, Rest),
+    skip_white(Rest, Rest1),
     !.
 
 
@@ -31,83 +34,104 @@ is_object([0'{| Xs], Rest) :-
     skip_white(Xs, [0'} | Rest]),
     !.
 
-%is_object([0'{, 0'} | Xs], Xs) :-
-%    !.
-
-is_object([0'{ | AsciiList], Rest) :-   % Caso di più object o ultimo
-    is_members(AsciiList, [0'} | Rest]),
+is_object([0'{ | AsciiList], Rest1) :-   % Caso di più object o ultimo
+        skip_white(AsciiList, AsciiList1),
+    is_members(AsciiList1, [0'} | Rest]),
+    skip_white(Rest, Rest1),
     !.
 
 % ARRAY definition
 % is_array/2
 
-is_array([0'[, 0'] | Xs], Xs) :-
+is_array([0'[| Xs], Rest) :-
+    skip_white(Xs, [0'] | Rest]),
     !.
 
-is_array([0'[ | AsciiList], Rest) :-   % Caso di più array o ultimo
-    is_elements(AsciiList, [0'] | Rest]),
+is_array([0'[ | AsciiList], Rest1) :-   % Caso di più array o ultimo
+        skip_white(AsciiList, AsciiList1),
+    is_elements(AsciiList1, [0'] | Rest]),
+    skip_white(Rest, Rest1),
     !.
 
 % ELEMENTS definition
 % is_elements/2
-is_elements(AsciiList, Rest2) :-
-    is_value(AsciiList, [0', | Rest]),
+is_elements(AsciiList, Rest3) :-
+        skip_white(AsciiList, AsciiList1),
+    is_value(AsciiList1, [0', | Rest]),
     !,
-    is_elements(Rest, Rest2).
+    skip_white(Rest, Rest1),
+    is_elements(Rest1, Rest2),
+    skip_white(Rest2, Rest3).
 
-is_elements(AsciiList, Rest) :-
-    is_value(AsciiList, Rest),
+is_elements(AsciiList, Rest1) :-
+        skip_white(AsciiList, AsciiList1),
+    is_value(AsciiList1, Rest),
+    skip_white(Rest, Rest1),
     !.
 
 % MEMBERS definition
 % is_members/2
-is_members(AsciiList, Rest2) :-
-    is_pair(AsciiList, [0', | Rest]),
+is_members(AsciiList, Rest3) :-
+        skip_white(AsciiList, AsciiList1),
+    is_pair(AsciiList1, [0', | Rest]),
     !,
-    is_members(Rest, Rest2).
+    skip_white(Rest, Rest1),
+    is_members(Rest1, Rest2),
+    skip_white(Rest2, Rest3).
 
-is_members(AsciiList, Rest) :-
-    is_pair(AsciiList, Rest),
-    !.
+is_members(AsciiList, Rest1) :-
+        skip_white(AsciiList, AsciiList1),
+    is_pair(AsciiList1, Rest),
+    !,
+    skip_white(Rest, Rest1).
 
 % PAIR definition
 % is_pair/2
-is_pair(AsciiList, Rest) :-
-    is_string(AsciiList, [0': | Rest2]),
-    is_value(Rest2, Rest).
+is_pair(AsciiList, Rest3) :-
+        skip_white(AsciiList, AsciiList1),
+    is_string(AsciiList1, [0': | Rest]),
+    skip_white(Rest, Rest1),
+    is_value(Rest1, Rest2),
+    skip_white(Rest2, Rest3).
 
 % STRING definition
 % is_string/2
-is_string([0'" | AsciiList], Rest) :-
+is_string([0'" | AsciiList], Rest1) :-
     skip_chars(AsciiList, Rest),
-    !.
+    !,
+    skip_white(Rest, Rest1).
 
-is_string([0'' | AsciiList], Rest) :-
+is_string([0'' | AsciiList], Rest1) :-
     skip_chars1(AsciiList, Rest),
-    !.
+    !,
+    skip_white(Rest, Rest1).
 
 % VALUE definition
 % is_value/2
-is_value(AsciiList, Rest) :-
-    is_string(AsciiList, Rest),
-    !.
+is_value(AsciiList, Rest1) :-
+        skip_white(AsciiList, AsciiList1),
+    is_string(AsciiList1, Rest),
+    !,
+    skip_white(Rest, Rest1).
 
-is_value(AsciiList, Rest) :-
+is_value(AsciiList, Rest1) :-
     is_number(AsciiList, Rest),
+    skip_white(Rest, Rest1),
     !.
 
-is_value(AsciiList, Rest) :-
+is_value(AsciiList, Rest1) :-
     is_JSON(AsciiList, Rest),
-    !.
+    !,
+    skip_white(Rest, Rest1).
 
 % NUMBER definition
 % is_number/2
 is_number(AsciiList, Rest) :-
-    parse_int(AsciiList, Num, Rest),
+    parse_float(AsciiList, Num, Rest),
     !.
 
 is_number(AsciiList, Rest) :-
-    parse_float(AsciiList, Num, Rest),
+    parse_int(AsciiList, Num, Rest),
     !.
 
 %%%% Helper Functions Definitions
