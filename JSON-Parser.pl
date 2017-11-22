@@ -14,19 +14,25 @@ json_parse(Atom, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****
 % is_JSON/2
 
 is_JSON(AsciiList, Rest) :-
-    is_object(AsciiList, Rest),
+        skip_white(AsciiList, AsciiList1),
+    is_object(AsciiList1, Rest),
     !.
 
-is_JSON(AsciiList, Rest) :-   
-        is_array(AsciiList, Rest),
+is_JSON(AsciiList, Rest) :- 
+        skip_white(AsciiList, AsciiList1),
+        is_array(AsciiList1, Rest),
     !.
 
 
 % OBJECT definition
 % is_object/2
 
-is_object([0'{, 0'} | Xs], Xs) :-
+is_object([0'{| Xs], Rest) :-
+    skip_white(Xs, [0'} | Rest]),
     !.
+
+%is_object([0'{, 0'} | Xs], Xs) :-
+%    !.
 
 is_object([0'{ | AsciiList], Rest) :-   % Caso di più object o ultimo
     is_members(AsciiList, [0'} | Rest]),
