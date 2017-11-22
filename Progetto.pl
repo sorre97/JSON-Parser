@@ -1,16 +1,12 @@
 %%%% -*- Mode: Prolog -*-
 %%%% JSON-Parser.pl
-%%%% Premature optimization is root of all evil
+%%%% Premature optimization is the root of all evil
 
 % JSON parse definition
 % json_parse/2
-json_parse(String, _) :-		<-----------MODIFICA
-    string(String),
-    !,
-    fail.
 
 json_parse(Atom, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****************
-    atomic(Atom),
+    atom(Atom),
     atom_codes(Atom, AtomCodes),
     is_JSON(AtomCodes, _).
 
@@ -30,8 +26,12 @@ is_JSON(X, Rest) :-   %***************** DA IMPLEMENTARE *****************
     is_array(X, Rest),
     !.
 */
-is_object([0'{, 0'} | Xs], Xs) :-		<------------------MODIFICA
-	!.
+
+% is_object definition
+% is_object/2
+
+is_object([0'{, 0'} | Xs], Xs) :-
+    !.
 
 is_object([0'{ | AsciiList], Rest) :-   % Caso di più object o ultimo
     is_members(AsciiList, [0'} | Rest]),
@@ -154,3 +154,4 @@ parse_float(List, Float, MoreInput) :-
     number_codes(Float, FloatCodes).
 
 %%%% End JSON-Parser.pl
+
