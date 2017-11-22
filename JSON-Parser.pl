@@ -13,13 +13,9 @@ json_parse(Atom, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****
 % JSON object definition
 % is_JSON/2
 
-%is_JSON(AsciiList, _) :-
-%    is_object(AsciiList, []),
-%    !.
-
 is_JSON(AsciiList, Rest) :-
-    is_object(AsciiList, Rest).
-%    !.
+    is_object(AsciiList, Rest),
+    !.
 
 /*
 is_JSON(X, Rest) :-   %***************** DA IMPLEMENTARE *****************
@@ -154,4 +150,5 @@ parse_float(List, Float, MoreInput) :-
     number_codes(Float, FloatCodes).
 
 %%%% End JSON-Parser.pl
+
 
