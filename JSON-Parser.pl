@@ -5,24 +5,24 @@
 % JSON parse definition
 % json_parse/2
 
-json_parse(Atom, _JSONString) :-  % ***************** RIMUOVERE UNDERSCORE *****************
-    atom(Atom),
-    atom_codes(Atom, AtomCodes),
-    is_JSON(AtomCodes, Rest),
+json_parse(JSONString, Object) :-
+    atom(JSONString),
+    atom_codes(JSONString, AtomCodes),
+    is_JSON(AtomCodes, Rest, Object),
     skip_space(Rest, []).
 
 % JSON object definition
 % is_JSON/2
 
-is_JSON(AsciiList, Rest1) :-
-        skip_space(AsciiList, AsciiList1),
-    is_object(AsciiList1, Rest),
+is_JSON(AsciiList, Rest1, JSON_Obj) :-
+    skip_space(AsciiList, AsciiList1),
+    is_object(AsciiList1, Rest, JSON_Obj),
     skip_space(Rest, Rest1),
     !.
 
-is_JSON(AsciiList, Rest1) :- 
-        skip_space(AsciiList, AsciiList1),
-        is_array(AsciiList1, Rest),
+is_JSON(AsciiList, Rest1, JSON_Array) :- 
+    skip_space(AsciiList, AsciiList1),
+    is_array(AsciiList1, Rest, JSON_Array),
     skip_space(Rest, Rest1),
     !.
 
@@ -30,108 +30,110 @@ is_JSON(AsciiList, Rest1) :-
 % OBJECT definition
 % is_object/2
 
-is_object([0'{| Xs], Rest) :-
+is_object([0'{| Xs], Rest, json_obj([])) :-
     skip_space(Xs, [0'} | Rest]),
     !.
 
-is_object([0'{ | AsciiList], Rest1) :-   % Caso di più object o ultimo
-        skip_space(AsciiList, AsciiList1),
-    is_members(AsciiList1, [0'} | Rest]),
+is_object([0'{ | AsciiList], Rest1, json_obj(Members)) :-   % Caso di più object o ultimo
+    skip_space(AsciiList, AsciiList1),
+    is_members(AsciiList1, [0'} | Rest], Members),
     skip_space(Rest, Rest1),
     !.
 
 % ARRAY definition
 % is_array/2
 
-is_array([0'[| Xs], Rest) :-
+is_array([0'[| Xs], Rest, json_array([])) :-
     skip_space(Xs, [0'] | Rest]),
     !.
 
-is_array([0'[ | AsciiList], Rest1) :-   % Caso di più array o ultimo
-        skip_space(AsciiList, AsciiList1),
-    is_elements(AsciiList1, [0'] | Rest]),
+is_array([0'[ | AsciiList], Rest1, json_array(Elements)) :-   % Caso di più array o ultimo
+    skip_space(AsciiList, AsciiList1),
+    is_elements(AsciiList1, [0'] | Rest], Elements),
     skip_space(Rest, Rest1),
     !.
 
 % ELEMENTS definition
 % is_elements/2
-is_elements(AsciiList, Rest3) :-
-        skip_space(AsciiList, AsciiList1),
-    is_value(AsciiList1, [0', | Rest]),
+is_elements(AsciiList, Rest3, [Value | MoreElements]) :-
+    skip_space(AsciiList, AsciiList1),
+    is_value(AsciiList1, [0', | Rest], Value),
     !,
     skip_space(Rest, Rest1),
-    is_elements(Rest1, Rest2),
+    is_elements(Rest1, Rest2, MoreElements),
     skip_space(Rest2, Rest3).
 
-is_elements(AsciiList, Rest1) :-
-        skip_space(AsciiList, AsciiList1),
-    is_value(AsciiList1, Rest),
+is_elements(AsciiList, Rest1, [Value]) :-
+    skip_space(AsciiList, AsciiList1),
+    is_value(AsciiList1, Rest, Value),
     skip_space(Rest, Rest1),
     !.
 
 % MEMBERS definition
 % is_members/2
-is_members(AsciiList, Rest3) :-
-        skip_space(AsciiList, AsciiList1),
-    is_pair(AsciiList1, [0', | Rest]),
+is_members(AsciiList, Rest3, [Pair | MoreMembers]) :-
+    skip_space(AsciiList, AsciiList1),
+    is_pair(AsciiList1, [0', | Rest], Pair),
     !,
     skip_space(Rest, Rest1),
-    is_members(Rest1, Rest2),
+    is_members(Rest1, Rest2, MoreMembers),
     skip_space(Rest2, Rest3).
 
-is_members(AsciiList, Rest1) :-
-        skip_space(AsciiList, AsciiList1),
-    is_pair(AsciiList1, Rest),
+is_members(AsciiList, Rest1, [Pair]) :-
+    skip_space(AsciiList, AsciiList1),
+    is_pair(AsciiList1, Rest, Pair),
     !,
     skip_space(Rest, Rest1).
 
 % PAIR definition
 % is_pair/2
-is_pair(AsciiList, Rest3) :-
-        skip_space(AsciiList, AsciiList1),
-    is_string(AsciiList1, [0': | Rest]),
+is_pair(AsciiList, Rest3, (Attribute, Value)) :-
+    skip_space(AsciiList, AsciiList1),
+    is_string(AsciiList1, [0': | Rest], Attribute),
     skip_space(Rest, Rest1),
-    is_value(Rest1, Rest2),
+    is_value(Rest1, Rest2, Value),
     skip_space(Rest2, Rest3).
 
 % STRING definition
 % is_string/2
-is_string([0'" | AsciiList], Rest1) :-
-    skip_chars(AsciiList, Rest),
+is_string([0'" | AsciiList], Rest1, String) :-
+    skip_chars(AsciiList, Rest, StringCodes),
     !,
+    string_codes(String, StringCodes),
     skip_space(Rest, Rest1).
 
-is_string([0'' | AsciiList], Rest1) :-
-    skip_chars1(AsciiList, Rest),
+is_string([0'' | AsciiList], Rest1, String) :-
+    skip_chars1(AsciiList, Rest, StringCodes),
     !,
+    string_codes(String, StringCodes),
     skip_space(Rest, Rest1).
 
 % VALUE definition
 % is_value/2
-is_value(AsciiList, Rest1) :-
-        skip_space(AsciiList, AsciiList1),
-    is_string(AsciiList1, Rest),
+is_value(AsciiList, Rest1, String) :-
+    skip_space(AsciiList, AsciiList1),
+    is_string(AsciiList1, Rest, String),
     !,
     skip_space(Rest, Rest1).
 
-is_value(AsciiList, Rest1) :-
-    is_number(AsciiList, Rest),
+is_value(AsciiList, Rest1, Number) :-
+    is_number(AsciiList, Rest, Number),
     skip_space(Rest, Rest1),
     !.
 
-is_value(AsciiList, Rest1) :-
-    is_JSON(AsciiList, Rest),
+is_value(AsciiList, Rest1, JSON_Obj) :-
+    is_JSON(AsciiList, Rest, JSON_Obj),
     !,
     skip_space(Rest, Rest1).
 
 % NUMBER definition
 % is_number/2
-is_number(AsciiList, Rest) :-
-    parse_float(AsciiList, Num, Rest),
+is_number(AsciiList, Rest, Number) :-
+    parse_float(AsciiList, Number, Rest),
     !.
 
-is_number(AsciiList, Rest) :-
-    parse_int(AsciiList, Num, Rest),
+is_number(AsciiList, Rest, Number) :-
+    parse_int(AsciiList, Number, Rest),
     !.
 
 %%%% Helper Functions Definitions
@@ -140,21 +142,21 @@ is_number(AsciiList, Rest) :-
 % skip_chars/2
 /*  This predicate skips every char up to the next double quote sign */
 
-skip_chars([X | Xs], Ris) :-
+skip_chars([X | Xs], Ris, [X | Rest]) :-
     X \= 0'",
     !,
-    skip_chars(Xs, Ris).
+    skip_chars(Xs, Ris, Rest).
 
-skip_chars([X | Xs], Xs) :-
+skip_chars([X | Xs], Xs, []) :-
     X = 0'",
     !.
 
-skip_chars1([X | Xs], Ris) :-
+skip_chars1([X | Xs], Ris, [X | Rest]) :-
     X \= 0'',
     !,
-    skip_chars1(Xs, Ris).
+    skip_chars1(Xs, Ris, Rest).
 
-skip_chars1([X | Xs], Xs) :-
+skip_chars1([X | Xs], Xs, []) :-
     X = 0'',
     !.
 
@@ -201,5 +203,6 @@ parse_float(List, Float, MoreInput) :-
     number_codes(Float, FloatCodes).
 
 %%%% End JSON-Parser.pl
+
 
 
