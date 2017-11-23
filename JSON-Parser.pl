@@ -16,17 +16,17 @@ json_parse(JSONString, Object) :-
 
 json_get(json_array(Elements), [Index | Rest], Result) :-
     number(Index),
-	!,
+    !,
     get_value1([Index | Rest], Elements, Result).
 
 json_get(json_obj(Members), [Attribute | Rest], Result) :-
     string(Attribute),
-	!,
+    !,
     get_value([Attribute | Rest], Members, Result).
     
 json_get(json_obj(Members), Attribute, Result) :-
     string(Attribute),
-	!,
+    !,
     json_get(json_obj(Members), [Attribute], Result).
 
 % JSON object definition
@@ -227,19 +227,19 @@ parse_float(List, Float, MoreInput) :-
 
 %caso array
 
-get_value1([Index], Elements, Value) :-							%<------------------------------ aggiunto number
-	number(Index),
+get_value1([Index], Elements, Value) :-
+    number(Index),
     !,
     nth0(Index, Elements, Value).
 
-get_value1([Index | Rest], Elements, Value) :-					%<------------------------------ aggiunto number
-	number(Index),
+get_value1([Index | Rest], Elements, Value) :-
+    number(Index),
     nth0(Index, Elements, json_array(Elements1)),
     !,
     get_value1(Rest, Elements1, Value).
    
-get_value1([Index | Rest], Elements, Value) :-					%<------------------------------ aggiunto number
-	number(Index),
+get_value1([Index | Rest], Elements, Value) :-
+    number(Index),
     nth0(Index, Elements, json_obj(Members)),
     !,
     json_get(json_obj(Members), Rest, Value).
@@ -250,16 +250,16 @@ get_value1([Index | Rest], Elements, Value) :-					%<---------------------------
 get_value([Attribute], [(Attribute, Value)| _], Value) :-
     !.
 
-get_value([Attribute, Index], [(Attribute, json_array(Elements)) | _], Value) :- %<----------------------------- aggiunto _]
+get_value([Attribute, Index], [(Attribute, json_array(Elements)) | _], Value) :- 
     number(Index),
-	!,
+    !,
     nth0(Index, Elements, Value).
     
-get_value([Attribute | Rest], [(Attribute, json_array(Elements)) | _], Value) :- %<----------------------------- aggiunto _]
+get_value([Attribute | Rest], [(Attribute, json_array(Elements)) | _], Value) :-
     !,
     json_get(json_array(Elements), Rest, Value). 
     
-get_value([Attribute | Rest], [(Attribute, json_obj(Members)) | _], Value) :-    %<-------------------------------- aggiunto _]
+get_value([Attribute | Rest], [(Attribute, json_obj(Members)) | _], Value) :-
    !,
    json_get(json_obj(Members), Rest, Value).
 
@@ -269,6 +269,7 @@ get_value([Attribute | Rest], [(X, _) | Members], Value) :-
     get_value([Attribute | Rest], Members, Value).
     
 %%%% End of file - JSON-Parser.pl
+
 
 
 
