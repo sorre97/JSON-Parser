@@ -7,8 +7,16 @@
 
 json_parse(JSONString, Object) :-
     atom(JSONString),
+    !,
     atom_codes(JSONString, AtomCodes),
     is_JSON(AtomCodes, Rest, Object),
+    skip_space(Rest, []).
+    
+json_parse(JSONString, Object) :-
+    string(JSONString),
+    !,
+    string_codes(JSONString, StringCodes),
+    is_JSON(StringCodes, Rest, Object),
     skip_space(Rest, []).
 
 % JSON get definition
@@ -269,6 +277,22 @@ get_value([Attribute | Rest], [(X, _) | Members], Value) :-
     get_value([Attribute | Rest], Members, Value).
     
 %%%% End of file - JSON-Parser.pl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
