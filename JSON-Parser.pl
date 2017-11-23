@@ -25,6 +25,7 @@ json_get(json_obj(Members), [Attribute | Rest], Result) :-
     get_value([Attribute | Rest], Members, Result).
     
 json_get(json_obj(Members), Attribute, Result) :-
+    string(Attribute),
     !,
     json_get(json_obj(Members), [Attribute], Result).
     
@@ -245,17 +246,18 @@ get_value1([Index | Rest], Elements, Value) :-
 
 
 % caso object
+
+get_value([Attribute], [(Attribute, Value)| _], Value) :-
+    !.
+
 get_value([Attribute, Index], [(Attribute, json_array(Elements))], Value) :-
     !,
     number(Index),
     nth0(Index, Elements, Value).
-
+    
 get_value([Attribute | Rest], [(Attribute, json_array(Elements))], Value) :-
     !,
     json_get(json_array(Elements), Rest, Value). 
-
-get_value([Attribute], [(Attribute, Value)| _], Value) :-
-    !.
     
 get_value([Attribute | Rest], [(Attribute, json_obj(Members))], Value) :-
    !,
