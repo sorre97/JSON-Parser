@@ -11,8 +11,23 @@ json_parse(JSONString, Object) :-
     is_JSON(AtomCodes, Rest, Object),
     skip_space(Rest, []).
 
+% JSON get definition
+% json_get/3
+
+json_get(json_obj(Members), [Attribute], Result) :-
+    string(Attribute),
+    !,
+    get_value(Attribute, Members, Result).
+    
+json_get(JSON_obj, Attribute, Result) :-
+    json_get(JSON_obj, [Attribute], Result).
+    
+% O = json_obj([(”nome”, ”Arthur”), (”cognome”, ”Dent”)])
+% O = array([1, "ciao", array(["ciao", 2, array(["casa", object([("Nome", "cognome")])])])])      Fields: ["nome", ]
+% [("ciao", "ciao"), ("salve", "salve")]  (Attrivute, Result))
+
 % JSON object definition
-% is_JSON/2
+% is_JSON/3
 
 is_JSON(AsciiList, Rest1, JSON_Obj) :-
     skip_space(AsciiList, AsciiList1),
@@ -28,7 +43,7 @@ is_JSON(AsciiList, Rest1, JSON_Array) :-
 
 
 % OBJECT definition
-% is_object/2
+% is_object/3
 
 is_object([0'{| Xs], Rest, json_obj([])) :-
     skip_space(Xs, [0'} | Rest]),
@@ -41,7 +56,7 @@ is_object([0'{ | AsciiList], Rest1, json_obj(Members)) :-   % Caso di più objec
     !.
 
 % ARRAY definition
-% is_array/2
+% is_array/3
 
 is_array([0'[| Xs], Rest, json_array([])) :-
     skip_space(Xs, [0'] | Rest]),
@@ -54,7 +69,7 @@ is_array([0'[ | AsciiList], Rest1, json_array(Elements)) :-   % Caso di più arr
     !.
 
 % ELEMENTS definition
-% is_elements/2
+% is_elements/3
 is_elements(AsciiList, Rest3, [Value | MoreElements]) :-
     skip_space(AsciiList, AsciiList1),
     is_value(AsciiList1, [0', | Rest], Value),
@@ -70,7 +85,7 @@ is_elements(AsciiList, Rest1, [Value]) :-
     !.
 
 % MEMBERS definition
-% is_members/2
+% is_members/3
 is_members(AsciiList, Rest3, [Pair | MoreMembers]) :-
     skip_space(AsciiList, AsciiList1),
     is_pair(AsciiList1, [0', | Rest], Pair),
@@ -86,7 +101,7 @@ is_members(AsciiList, Rest1, [Pair]) :-
     skip_space(Rest, Rest1).
 
 % PAIR definition
-% is_pair/2
+% is_pair/3
 is_pair(AsciiList, Rest3, (Attribute, Value)) :-
     skip_space(AsciiList, AsciiList1),
     is_string(AsciiList1, [0': | Rest], Attribute),
@@ -95,7 +110,7 @@ is_pair(AsciiList, Rest3, (Attribute, Value)) :-
     skip_space(Rest2, Rest3).
 
 % STRING definition
-% is_string/2
+% is_string/3
 is_string([0'" | AsciiList], Rest1, String) :-
     skip_chars(AsciiList, Rest, StringCodes),
     !,
@@ -109,7 +124,7 @@ is_string([0'' | AsciiList], Rest1, String) :-
     skip_space(Rest, Rest1).
 
 % VALUE definition
-% is_value/2
+% is_value/3
 is_value(AsciiList, Rest1, String) :-
     skip_space(AsciiList, AsciiList1),
     is_string(AsciiList1, Rest, String),
@@ -127,7 +142,7 @@ is_value(AsciiList, Rest1, JSON_Obj) :-
     skip_space(Rest, Rest1).
 
 % NUMBER definition
-% is_number/2
+% is_number/3
 is_number(AsciiList, Rest, Number) :-
     parse_float(AsciiList, Number, Rest),
     !.
@@ -139,7 +154,7 @@ is_number(AsciiList, Rest, Number) :-
 %%%% Helper Functions Definitions
 
 % SKIP CHARS
-% skip_chars/2
+% skip_chars/3
 /*  This predicate skips every char up to the next double quote sign */
 
 skip_chars([X | Xs], Ris, [X | Rest]) :-
@@ -175,7 +190,7 @@ skip_space(List, List).
 % Parse_int - float definition
 % parse_int-float/3
 % parse_int1/3
-/*  This predicate parses the integer and returns everything
+/*  This predicate parses the integer and "returns" everything
     that is not a number in Moreinput */
 
 parse_int(List, Integer, MoreInput) :-
@@ -201,6 +216,20 @@ parse_float(List, Float, MoreInput) :-
     append(IntegerCodes, [0'.], FirstPart),
     append(FirstPart, DecimalCodes, FloatCodes),
     number_codes(Float, FloatCodes).
+    
+% Get_value definition
+% Get_value/3
+/* This predicate gets the attribute as parameter and "returns" the associated value */
+
+% O = json_obj([(”nome”, ”Arthur”), (”cognome”, ”Dent”)])
+get_value(Attribute, [(X, Y)| Members], Value) :-
+    X \= Attribute,
+    !,
+    get_value(Attribute, Members, Value).
+
+get_value(Attribute, [(Attribute, Value)| _], Value) :-
+    !.
+    
 
 %%%% End JSON-Parser.pl
 
