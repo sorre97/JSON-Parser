@@ -7,9 +7,16 @@
 
 json_parse(JSONString, Object) :-
     atom(JSONString),
+    !,
     atom_codes(JSONString, AtomCodes),
     is_JSON(AtomCodes, Rest, Object),
     skip_space(Rest, []).
+    
+json_parse(JSONString, Object) :-
+    string(JSONString),
+    !,
+    atom_string(JSONAtom, JSONString),
+    json_parse(JSONAtom, Object).
 
 % JSON get definition
 % json_get/3
@@ -23,7 +30,7 @@ json_get(json_obj(Members), [Attribute | Rest], Result) :-
     string(Attribute),
     !,
     get_value([Attribute | Rest], Members, Result).
-    
+
 json_get(json_obj(Members), Attribute, Result) :-
     string(Attribute),
     !,
@@ -153,6 +160,13 @@ is_number(AsciiList, Rest, Number) :-
 is_number(AsciiList, Rest, Number) :-
     parse_int(AsciiList, Number, Rest),
     !.
+
+%%%% I/O
+json_load(FileName, JSON) :-
+    open(FileName, read, In),
+    read(In, JSON_obj),
+    json_parse(JSON_obj, JSON),
+    close(In).
 
 %%%% Helper Functions Definitions
 
