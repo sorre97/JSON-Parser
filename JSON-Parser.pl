@@ -15,9 +15,8 @@ json_parse(JSONString, Object) :-
 json_parse(JSONString, Object) :-
     string(JSONString),
     !,
-    string_codes(JSONString, StringCodes),
-    is_JSON(StringCodes, Rest, Object),
-    skip_space(Rest, []).
+    atom_string(JSONAtom, JSONString),
+    json_parse(JSONAtom, Object).
 
 % JSON get definition
 % json_get/3
@@ -31,7 +30,7 @@ json_get(json_obj(Members), [Attribute | Rest], Result) :-
     string(Attribute),
     !,
     get_value([Attribute | Rest], Members, Result).
-    
+
 json_get(json_obj(Members), Attribute, Result) :-
     string(Attribute),
     !,
@@ -162,6 +161,13 @@ is_number(AsciiList, Rest, Number) :-
     parse_int(AsciiList, Number, Rest),
     !.
 
+%%%% I/O
+json_load(FileName, JSON) :-
+    open(FileName, read, In),
+    read(In, JSON_obj),
+    json_parse(JSON_obj, JSON),
+    close(In).
+
 %%%% Helper Functions Definitions
 
 % SKIP CHARS
@@ -277,22 +283,6 @@ get_value([Attribute | Rest], [(X, _) | Members], Value) :-
     get_value([Attribute | Rest], Members, Value).
     
 %%%% End of file - JSON-Parser.pl
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
