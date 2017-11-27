@@ -163,26 +163,41 @@ is_number(AsciiList, Rest, Number) :-
 
 %%%% I/O
 json_load(FileName, JSON) :-
-    open(FileName, read, In),
-    read(In, JSON_obj),
-    json_parse(JSON_obj, JSON),
-    close(In).
+	atom(FileName),
+	exists_file(FileName),
+    read_file_to_string(FileName, JSON_obj, []),
+    json_parse(JSON_obj, JSON).
 
+json_write(JSON, FileName) :-
+	atom(FileName),
+	open(FileName, write, Out),
+	to_be_written(JSON, Ris),
+	writeq(Out, Ris). %<----------------------------------------------------------------------- continue here
+	
+	
 %%%% Helper Functions Definitions
 
 % SKIP CHARS
 % skip_chars/3
 /*  This predicate skips every char up to the next double quote sign */
 
+skip_chars([0'\\, 0'" | Xs], Ris, [0'" | Rest]) :-
+	!,
+	skip_chars(Xs, Ris, Rest).
+
 skip_chars([X | Xs], Ris, [X | Rest]) :-
     X \= 0'",
     !,
-    skip_chars(Xs, Ris, Rest).
-
+    skip_chars(Xs, Ris, Rest).	
+	
 skip_chars([X | Xs], Xs, []) :-
     X = 0'",
     !.
 
+skip_chars1([0'\\, 0'' | Xs], Ris, [0'' | Rest]) :-
+	!,
+	skip_chars1(Xs, Ris, Rest).	
+	
 skip_chars1([X | Xs], Ris, [X | Rest]) :-
     X \= 0'',
     !,
