@@ -163,18 +163,114 @@ is_number(AsciiList, Rest, Number) :-
 
 %%%% I/O
 json_load(FileName, JSON) :-
-	atom(FileName),
-	exists_file(FileName),
+    atom(FileName),
+    exists_file(FileName),
     read_file_to_string(FileName, JSON_obj, []),
     json_parse(JSON_obj, JSON).
 
 json_write(JSON, FileName) :-
-	atom(FileName),
-	open(FileName, write, Out),
-	to_be_written(JSON, Ris),
-	writeq(Out, Ris). %<----------------------------------------------------------------------- continue here
-	
-	
+    atom(FileName),
+    open(FileName, write, Out),
+    write_JSON(JSON, Out),
+    close(Out).
+    
+write_JSON(json_obj(Members), Out) :-
+    !,
+    write(Out, '{'),
+    write_members(Members, Out),
+    write(Out, '}').
+    
+write_JSON(json_array(Elements), Out) :-
+    !,
+    write(Out, '['),
+    write_elements(Elements, Out),
+    write(Out, ']').
+
+%%% Write members
+% Empty JSON
+write_members([], _Out) :-
+    !.
+
+% string : string
+write_members([(Chiave, Valore)], Out) :-
+    string(Chiave),
+    string(Valore), 
+    !,
+    writeq(Out, Chiave),
+    write(Out, " : "),
+    writeq(Out, Valore).
+
+% string : number
+write_members([(Chiave, Valore)], Out) :-
+    string(Chiave),
+    number(Valore), 
+    !,
+    writeq(Out, Chiave),
+    write(Out, " : "),
+    writeq(Out, Valore).
+    
+% string : JSON_Obj
+write_members([(Chiave, json_obj(Members))], Out) :-
+    string(Chiave), 
+    !,
+    writeq(Out, Chiave),
+    write(Out, " : "),
+    write_JSON(json_obj(Members), Out).
+    
+% string : JSON_Obj + more members  
+write_members([(Chiave, json_obj(Members)) | Members1], Out) :-
+    string(Chiave),
+    !,
+    writeq(Out, Chiave),
+    write(Out, " : "),
+    write_JSON(json_obj(Members), Out),
+    write(Out, ', '),
+    write_members(Members1, Out).
+    
+% string : JSON_Array
+write_members([(Chiave, json_array(Elements))], Out) :-
+    string(Chiave), 
+    !,
+    writeq(Out, Chiave),
+    write(Out, " : "),
+    write_JSON(json_array(Elements), Out).
+    
+% string : string
+write_members([(Chiave, Valore) | Members], Out) :-
+    !,
+    write_members([(Chiave, Valore)], Out),
+    write(Out, ", "),
+    write_members(Members, Out).
+    
+%%% Write Elements
+% Empty ARRAY
+write_elements([], _Out) :-
+    !.
+   
+write_elements([Element], Out) :-
+    string(Element),
+    !,
+    writeq(Out, Element).
+    
+write_elements([Element], Out) :-
+    number(Element),
+    !,
+    writeq(Out, Element).
+    
+write_elements([json_obj(Members)], Out) :-
+    !,
+    write_JSON(json_obj(Members), Out).
+
+write_elements([json_array(Elements)], Out) :-
+    !,
+    write_JSON(json_array(Elements), Out).
+    
+write_elements([Element | Elements], Out) :-
+    !,
+    write_elements([Element], Out),
+    write(Out, ", "),
+    write_elements(Elements, Out).
+    
 %%%% Helper Functions Definitions
 
 % SKIP CHARS
@@ -182,22 +278,22 @@ json_write(JSON, FileName) :-
 /*  This predicate skips every char up to the next double quote sign */
 
 skip_chars([0'\\, 0'" | Xs], Ris, [0'" | Rest]) :-
-	!,
-	skip_chars(Xs, Ris, Rest).
+    !,
+    skip_chars(Xs, Ris, Rest).
 
 skip_chars([X | Xs], Ris, [X | Rest]) :-
     X \= 0'",
     !,
-    skip_chars(Xs, Ris, Rest).	
-	
+    skip_chars(Xs, Ris, Rest).  
+    
 skip_chars([X | Xs], Xs, []) :-
     X = 0'",
     !.
 
 skip_chars1([0'\\, 0'' | Xs], Ris, [0'' | Rest]) :-
-	!,
-	skip_chars1(Xs, Ris, Rest).	
-	
+    !,
+    skip_chars1(Xs, Ris, Rest). 
+    
 skip_chars1([X | Xs], Ris, [X | Rest]) :-
     X \= 0'',
     !,
@@ -298,6 +394,8 @@ get_value([Attribute | Rest], [(X, _) | Members], Value) :-
     get_value([Attribute | Rest], Members, Value).
     
 %%%% End of file - JSON-Parser.pl
+
+
 
 
 
