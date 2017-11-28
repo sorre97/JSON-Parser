@@ -489,7 +489,8 @@ get_value([Attr, Index], [(Attr, json_array(Elements)) | _], Val) :-
     !,
     nth0(Index, Elements, Val).
 
-% Case in which Attribute has been found and its value is a json_array
+% Case in which Attribute has been found and its value is a
+% json_array
 get_value([Attr | Rest], [(Attr, json_array(Elements)) | _], Val) :-
     !,
     json_get(json_array(Elements), Rest, Val).
