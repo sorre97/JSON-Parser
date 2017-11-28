@@ -484,26 +484,26 @@ get_value([Attribute], [(Attribute, Value)| _], Value) :-
 
 % Base case -> it returns the index'ed element in the
 % json_array
-get_value([Attr, Index], [(Attr, json_array(Elements)) | _], Val) :-
+get_value([Attr, Index], [(Attr, json_array(Elements)) | _], Value) :-
     number(Index),
     !,
-    nth0(Index, Elements, Val).
+    nth0(Index, Elements, Value).
 
 % Case in which Attribute has been found and its value is a json_array
-get_value([Attr | Rest], [(Attr, json_array(Elements)) | _], Val) :-
+get_value([Attr | Rest], [(Attr, json_array(Elements)) | _], Value) :-
     !,
-    json_get(json_array(Elements), Rest, Val).
+    json_get(json_array(Elements), Rest, Value).
 
 % Case in which Attribute has been found and its value is a json_obj
-get_value([Attr | Rest], [(Attr, json_obj(Members)) | _], Val) :-
+get_value([Attr | Rest], [(Attr, json_obj(Members)) | _], Value) :-
    !,
-   json_get(json_obj(Members), Rest, Val).
+   json_get(json_obj(Members), Rest, Value).
 
 % Recursive case -> Attribute hasn't been found yet
-get_value([Attr | Rest], [(X, _) | Members], Val) :-
+get_value([Attr | Rest], [(X, _) | Members], Value) :-
     X \= Attr,
     !,
-    get_value([Attr | Rest], Members, Val).
+    get_value([Attr | Rest], Members, Value).
 
 %%%% END - OF - FILE - json-parsing.pl
 
