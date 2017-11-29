@@ -1,7 +1,8 @@
 %%%% -*- Mode: Prolog -*-
 %%%% json-parsing.pl
-%%%% "Premature optimization is the root of all evil"
 %%%% Creators: Sorrentino, Rota, Mottadelli
+%%%% "Premature optimization is the root of all evil"
+%%%% "42 is the only solution."
 
 % JSON parse definition:
 % json_parse/2
@@ -417,13 +418,33 @@ skip_space(List, List).
 % This predicate parses the integer and "returns"
 % everything that is not a number in Moreinput
 
-% Main parse_int which calls parse_in1
+% Main parse_int which calls parse_int1:
+
+% Case in which number has a positive sign
 parse_int(List, Integer, MoreInput) :-
-    skip_space(List, List1),
-    parse_int1(List1, ListNum, MoreInput),
+    skip_space(List, [0'+ | Rest]),
+    !,
+    parse_int1(Rest, ListNum, MoreInput),
     ListNum \= [], % it means that we haven't found a number
     number_codes(Integer, ListNum).
 
+% Case in which number has a negative sign
+parse_int(List, Integer, MoreInput) :-
+    skip_space(List, [0'- | Rest]),
+    !,
+    parse_int1(Rest, ListNum, MoreInput),
+    ListNum \= [], % it means that we haven't found a number
+    number_codes(Integer1, ListNum),
+    Integer is Integer1 * (-1).
+   
+% Case in which number is positive but whithout plus sign
+parse_int(List, Integer, MoreInput) :-
+    skip_space(List, List1),
+    !,
+    parse_int1(List1, ListNum, MoreInput),
+    ListNum \= [], % it means that we haven't found a number
+    number_codes(Integer, ListNum).
+    
 % Recursive case -> everytime if X is a digit, it is
 % collected in a Temp list and we proceede recursively
 % until X isn't a digit anymore
@@ -437,15 +458,43 @@ parse_int1(MoreInput, [], MoreInput) :-
     !.
 
 % Main parse_float which calls 2 parse_int1
+% Case in which the number has a positive sign
+parse_float(List, Float, MoreInput) :-
+    skip_space(List, [0'+ | Rest]),
+    !,
+    parse_int1(Rest, IntegerCodes, [0'. | Rest1]),
+    parse_int1(Rest1, DecimalCodes, MoreInput),
+    IntegerCodes \= [],
+    DecimalCodes \= [],
+    append(IntegerCodes, [0'.], FirstPart),
+    append(FirstPart, DecimalCodes, FloatCodes),
+    number_codes(Float, FloatCodes).
+
+% Case in which the number has a negative sign
+parse_float(List, Float, MoreInput) :-
+    skip_space(List, [0'- | Rest]),
+    !,
+    parse_int1(Rest, IntegerCodes, [0'. | Rest1]),
+    parse_int1(Rest1, DecimalCodes, MoreInput),
+    IntegerCodes \= [],
+    DecimalCodes \= [],
+    append(IntegerCodes, [0'.], FirstPart),
+    append(FirstPart, DecimalCodes, FloatCodes),
+    number_codes(Float1, FloatCodes),
+    Float is Float1 * (-1).
+ 
+% Case in which the number is positive, but without 
+% plus sign
 parse_float(List, Float, MoreInput) :-
     skip_space(List, List1),
+    !,
     parse_int1(List1, IntegerCodes, [0'. | Rest]),
     parse_int1(Rest, DecimalCodes, MoreInput),
     IntegerCodes \= [],
     DecimalCodes \= [],
     append(IntegerCodes, [0'.], FirstPart),
     append(FirstPart, DecimalCodes, FloatCodes),
-    number_codes(Float, FloatCodes).
+    number_codes(Float, FloatCodes).    
 
 % Get_value - Get_value1 definition:
 % Get_value/3
@@ -507,6 +556,7 @@ get_value([Attr | Rest], [(X, _) | Members], Val) :-
     get_value([Attr | Rest], Members, Val).
 
 %%%% END - OF - FILE - json-parsing.pl
+
 
 
 
