@@ -7,7 +7,7 @@
 % JSON parse definition:
 % json_parse/2
 
-% Case in which JSONString is given as an atom
+% Case in which JSONAtom is given as an atom
 json_parse(JSONAtom, Object) :-
     atom(JSONAtom),
     !,
@@ -21,6 +21,15 @@ json_parse(JSONString, Object) :-
     !,
     atom_string(JSONAtom, JSONString),
     json_parse(JSONAtom, Object).
+    
+
+% Case in which JSONAscii is given as a list of ascii codes
+json_parse(JSONAscii, Object) :-
+    is_list(JSONAscii),
+    !,
+    is_JSON(JSONAscii, Rest, Object),
+    skip_space(Rest, []).
+
 
 
 
