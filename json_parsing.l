@@ -1,11 +1,13 @@
+;;;; json-parsing.lisp
+;;;; Creators: Sorrentino, Rota, Mottadelli
 ;;;; "Premature optimization is the root of all evil"
 ;;;; "42 is the only solution."
-;;; json-parse definition:
 
+;;; json-parse definition:
 (defun json-parse (json-string)
-  (if (not (stringp json-string)) 
+  (if (not (stringp json-string))
       error "ERROR: syntax error" 
-      (is-JSON (map 'list #'char-code json-string))))
+      (is-JSON (string-to-asciilist json-string))))
   
 ;;; is-JSON definition:
 (defun is-JSON (AsciiList)
@@ -29,7 +31,7 @@
 (defun asciilist-to-string (AsciiList)
 	(coerce (mapcar 'code-char AsciiList) 'string))
 
-
-
-
 ;;;; END OF FILE - json-parsing.lisp
+
+
+
