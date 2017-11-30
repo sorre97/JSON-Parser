@@ -35,3 +35,20 @@
 
 
 
+
+
+
+
+(defun is-string (AsciiList)
+  (list (append (list 34) (skip-char-string AsciiList)) (skip-char-rest AsciiList)))
+
+(defun skip-char-string (AsciiList)
+  (if (eq (first AsciiList) 34)
+      (list 34)
+      (append (list (first AsciiList)) (skip-char-string (rest AsciiList)))))
+
+(defun skip-char-rest (AsciiList)
+  (if (eq (first AsciiList) 34) 
+      (rest AsciiList)
+      (skip-char-rest (rest AsciiList))))
+
