@@ -16,7 +16,7 @@
   (cond 
    ((equal [ (first ascii-list)) (is-array (skip-whitespaces (rest ascii-list))))
    ((equal { (first ascii-list)) (is-object (skip-whitespaces (rest ascii-list))))
-   (T (error "ERROR: Non ho trovato né una quadra né una graffa"))))
+   (T (error "ERROR: Non ho trovato nÃ© una quadra nÃ© una graffa"))))
 
 ;;; is-array definition:
 
@@ -26,7 +26,7 @@
    ((equal } (first ascii-list)) (list (skip-whitespaces (rest ascii-list)) (list 'json-obj)))
     (T (let ((is-member-result (is-member ascii-list)))
          (if (equal } (first (more-input is-member-result)))
-          (list (rest (more-input is-member-result)) (append (list 'json-obj) (parsed-obj is-member-result)))
+          (list (skip-whitespaces (rest (more-input is-member-result))) (append (list 'json-obj) (parsed-obj is-member-result)))
         (error "l'oggetto non ha la parentesi }"))))))
 
 ;;; is-member definition:
@@ -53,14 +53,14 @@
   (cond
    ((equal double-quote (first ascii-list))
     (is-string ascii-list))
-   ((or (equal { (first ascii-list)) (equal [ (first ascii-list)))  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;da implementare il caso in cui c'è [, dunque un array o un numero
+   ((or (equal { (first ascii-list)) (equal [ (first ascii-list)))  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;da implementare il caso in cui c'Ã¨ [, dunque un array o un numero
     (is-JSON ascii-list))
    (T (error "sono u numero"))))
 
   
 ;;; is-string riceve in ingresso una stringa che inizia con doppio apice
 ;;; is-string ritorna una lista (more-input, parsed-string)
-;;; nota: more-input restituito da is-string è gia stato white-skippato
+;;; nota: more-input restituito da is-string Ã¨ gia stato white-skippato
 (defun is-string (AsciiList)
   (list (skip-whitespaces (skip-char-rest (rest AsciiList))) (asciilist-to-string (skip-char-string (rest AsciiList)))))
 
