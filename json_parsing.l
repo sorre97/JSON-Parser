@@ -7,8 +7,8 @@
 ;;; json-parse definition:
 ;;; input: una stringa di caratteri
 ;;; output: l'oggetto parsato
-;;; errori: (1) se l'input non Ã¨ una stringa
-;;;         (2) se MORE-INPUT  non Ã¨ vuoto
+;;; errori: (1) se l'input non è una stringa
+;;;         (2) se MORE-INPUT  non è vuoto
 (defun json-parse (json-string)
   (if (not (stringp json-string)) 
     (error "ERROR: non sono una stringa")
@@ -20,70 +20,88 @@
 
 
 ;;; is-JSON definition:
-;;; input: una lista di caratteri ascii, cioÃ¨ ASCII-LIST
-;;; output: (1) un JSON-ARRAY, se il primo carattere di ASCII-LIST Ã¨ [
-;;;         (2) un JSON-OBJ, se il primo carattere di ASCII-LIST Ã¨ {
-;;; errori: se non Ã¨ nÃ© un OBJ nÃ© un ARRAY
+;;; input: una lista di caratteri ascii, cioè ASCII-LIST
+;;; output: (1) un JSON-ARRAY, se il primo carattere di ASCII-LIST è [
+;;;         (2) un JSON-OBJ, se il primo carattere di ASCII-LIST è {
+;;; errori: se non è né un OBJ né un ARRAY
 (defun is-JSON (ascii-list)
   (cond 
    ((equal [ (first ascii-list)) (is-array (skip-whitespaces (rest ascii-list))))
    ((equal { (first ascii-list)) (is-object (skip-whitespaces (rest ascii-list))))
-   (T (error "ERROR: Non ho trovato nÃ© una quadra nÃ© una graffa"))))
+   (T (error "ERROR: Non ho trovato né una quadra né una graffa"))))
 
 
 
 ;;; is-object definition:
-;;; input: una lista di caratteri ascii, cioÃ¨ ASCII-LIST
-;;; output: un JSON-OBJ, il quale puÃ² essere vuoto o avere dei MEMBERS, e il MORE-INPUT
-;;; errori: se non c'Ã¨ la parentesi } che chiude il JSON-OBJ
+;;; input: una lista di caratteri ascii, cioè ASCII-LIST
+;;; output: un JSON-OBJ, il quale può essere vuoto o avere dei MEMBERS, e il MORE-INPUT
+;;; errori: se non c'è la parentesi } che chiude il JSON-OBJ
 (defun is-object (ascii-list)
   (cond 
-   ((equal } (first ascii-list)) (list (skip-whitespaces (rest ascii-list)) (list 'json-obj))) ; questo Ã¨ il caso oggetto vuoto
-   (T (let ((is-member-result (is-member ascii-list))) ; questo Ã¨ il caso in cui JSON-OBJ non Ã¨ vuoto
+   ((equal } (first ascii-list)) (list (skip-whitespaces (rest ascii-list)) (list 'json-obj))) ; questo è il caso oggetto vuoto
+   (T (let ((is-member-result (is-member ascii-list))) ; questo è il caso in cui JSON-OBJ non è vuoto
          (if (equal } (first (more-input is-member-result)))
-             (list (skip-whitespaces (rest (more-input is-member-result))) (append (list 'json-obj) (parsed-obj is-member-result))) ; questo Ã¨ il valore di ritorno
+             (list (skip-whitespaces (rest (more-input is-member-result))) (append (list 'json-obj) (parsed-obj is-member-result)))
            (error "l'oggetto non ha la parentesi }"))))))                                                                           
 
+;;; is-array definition:
 
+(defun is-array (ascii-list) 
+   (cond 
+     ((equal ] (first ascii-list)) 
+      (list (skip-whitespaces (rest ascii-list)) (list 'json-array))) ; questo è il caso array vuoto
+     (T (let ((is-element-result (is-element ascii-list))) ; questo è il caso in cui JSON-ARRAY non è vuoto
+         (if (equal ] (first (more-input is-element-result)))
+             (list (skip-whitespaces (rest (more-input is-element-result))) (append (list 'json-array) (parsed-obj is-element-result)))
+           (error "l'array non ha la parentesi ]"))))))
+           
+;;; is-element definition
+(defun is-element (ascii-list)
+  (let ((is-value-result (is-value ascii-list))) ; IS-VALUE-RESULT contiene un VALUE in PARSED-OBJ
+    (cond 
+     ((equal comma (first (more-input is-value-result))) ;se c'è una COMMA(virgola) allora ci sono più VALUE
+      (let ((recursive-element-result (is-element (skip-whitespaces (rest (more-input is-value-result)))))) 
+        (list (more-input recursive-element-result) (append (list (parsed-obj is-value-result)) (parsed-obj recursive-element-result)))))
+     (T (list (more-input is-value-result) (list (parsed-obj is-value-result))))))) ; caso base: c'è un solo VALUE, perchè non è stata trovata la virgola
 
 ;;; is-member definition:
-;;; input: una lista di caratteri ascii, cioÃ¨ ASCII-LIST
+;;; input: una lista di caratteri ascii, cioè ASCII-LIST
 ;;; output: (1) MORE-INPUT + un solo PAIR
 ;;;         (2) una lista di paia
 ;;; errori: non vengono lanciati errori...
 (defun is-member (ascii-list)
-  (let ((is-pair-result (is-pair ascii-list))) ; IS-PAIR-RESULT contiene un PAIR in PARSED-OBJ, cioÃ¨ la prima coppia string:value
+  (let ((is-pair-result (is-pair ascii-list))) ; IS-PAIR-RESULT contiene un PAIR in PARSED-OBJ, cioè la prima coppia string:value
     (cond 
-     ((equal comma (first (more-input is-pair-result))) ;se c'Ã¨ una COMMA(virgola) allora ci sono piÃ¹ PAIR
+     ((equal comma (first (more-input is-pair-result))) ;se c'è una COMMA(virgola) allora ci sono più PAIR
       (let ((recursive-member-result (is-member (skip-whitespaces (rest (more-input is-pair-result)))))) 
         (list (more-input recursive-member-result) (append (parsed-obj is-pair-result) (parsed-obj recursive-member-result))))) ; valore di ritorno: MORE-INPUT + una lista di PAIR
-     (T (list (more-input is-pair-result) (parsed-obj is-pair-result)))))) ; caso base: c'Ã¨ un solo PAIR, perchÃ¨ non Ã¨ stata trovata la virgola
+     (T (list (more-input is-pair-result) (parsed-obj is-pair-result)))))) ; caso base: c'è un solo PAIR, perchè non è stata trovata la virgola
 
 
 
 ;;; is-pair definition:
-;;; input: una lista di caratteri ascii, cioÃ¨ ASCII-LIST
+;;; input: una lista di caratteri ascii, cioè ASCII-LIST
 ;;; output: MORE-INPUT + una coppia chiave-valore
-;;; errori: (1) se la chiave non Ã¨ una stringa
+;;; errori: (1) se la chiave non è una stringa
 ;;; errori: (2) se non viene trovato il simbolo ':' tra la chiave e il valore
 (defun is-pair (ascii-list)
   (if (not (equal double-quote (first ascii-list))) (error "sono is-pair e non ho una stringa nella chiave")
     (let ((is-string-result (is-string (skip-whitespaces ascii-list)))) ; IS-STRING-RESULT contiene il valore della stringa in PARSED-OBJ
       (cond
        ((equal colon (first (more-input is-string-result))) ; se ci sono i ':' allora chiamo la is-value
-        (let ((is-value-result (is-value (skip-whitespaces (rest (more-input is-string-result)))))) ; IS-VALUE-RESULT conterrÃ  un VALUE in PARSED-OBJ
-          (list (more-input is-value-result) (list (list (parsed-obj is-string-result) (parsed-obj is-value-result)))))) ; questo Ã¨ il valore di ritorno
+        (let ((is-value-result (is-value (skip-whitespaces (rest (more-input is-string-result)))))) ; IS-VALUE-RESULT conterrà un VALUE in PARSED-OBJ
+          (list (more-input is-value-result) (list (list (parsed-obj is-string-result) (parsed-obj is-value-result)))))) ; questo è il valore di ritorno
        (T (error "non ho trovato il :"))))))
 
 
 
 ;;; is-value definition:
-;;; input: una lista di caratteri ascii, cioÃ¨ ASCII-LIST
-;;; output: MORE-INPUT(in modo implicito) + un VALUE, che puÃ² essere (1) una STRING, (2) un numero e (3) un JSON
-;;; errori: se non Ã¨ nÃ© un numero, nÃ© una string e neppure un JSON
+;;; input: una lista di caratteri ascii, cioè ASCII-LIST
+;;; output: MORE-INPUT(in modo implicito) + un VALUE, che può essere (1) una STRING, (2) un numero e (3) un JSON
+;;; errori: se non è né un numero, né una string e neppure un JSON
 (defun is-value (ascii-list)
   (cond
-   ((equal double-quote (first ascii-list)) ; se Ã¨ una stringa deve iniziare con DOUBLE-QUOTE
+   ((equal double-quote (first ascii-list)) ; se è una stringa deve iniziare con DOUBLE-QUOTE
     (is-string ascii-list))
    ((or (equal { (first ascii-list)) (equal [ (first ascii-list)))  
     (is-JSON ascii-list))
@@ -93,7 +111,7 @@
 
 
 ;;; is-string definition:
-;;; input: una lista di caratteri ascii, cioÃ¨ ASCII-LIST
+;;; input: una lista di caratteri ascii, cioè ASCII-LIST
 ;;; output: una lista contenente MORE-INPUT e una STRING
 ;;; errori: non vengono lanciati errori...
 (defun is-string (ascii-list)
@@ -113,8 +131,8 @@
 
 ;;; skip-char-rest definition:
 ;;; input: una lista di caratteri ascii, ASCII-LIST
-;;; output: tutto ciÃ² che c'Ã¨ dopo un DOUBLE-QUOTE, cioÃ¨ il MORE-INPUT di is-string
-;;; errori: viene lanciato un errore se ASCII-LIST Ã¨ la stringa vuota
+;;; output: tutto ciò che c'è dopo un DOUBLE-QUOTE, cioè il MORE-INPUT di is-string
+;;; errori: viene lanciato un errore se ASCII-LIST è la stringa vuota
 (defun skip-char-rest (ascii-list)
   (cond
    ((null ascii-list) (error "sono skip-char-rest e ho la lista vuota"))
@@ -125,7 +143,7 @@
 (defun parse-number (ascii-list)
   (let ((num-result (my-parse-int ascii-list)))
     (cond 
-     ((and (equal dot (first (more-input num-result)) (is-digit (second (more-input num-result)))) 
+     ((and (equal dot (first (more-input num-result))) (is-digit (second (more-input num-result))))
       (let ((decimal-result (my-parse-int (rest (more-input num-result)) '(46))))
         (list (skip-whitespaces (more-input decimal-result)) (parse-float (asciilist-to-string (append (parsed-obj num-result) (parsed-obj decimal-result)))))))
       (T (list (skip-whitespaces (more-input num-result)) (parse-int1 (reverse (parsed-obj num-result))))))))
@@ -148,8 +166,8 @@
 
 ;;; is-digit definition
 ;;; input: un codice ascii
-;;; output: true --> se Ã¨ un numero
-          ; false --> se non Ã¨ un numero
+;;; output: true --> se è un numero
+          ; false --> se non è un numero
 ;;; errori: non vengono lanciati errori
 (defun is-digit (ascii-num)
   (if (null ascii-num) 
@@ -197,3 +215,5 @@
 (defparameter double-quote (char-code #\"))
 
 ;;;; END OF FILE - json-parsing.lisp 
+
+
