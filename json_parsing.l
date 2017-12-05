@@ -13,7 +13,7 @@
   (if (not (stringp json-string)) 
     (error "ERROR: non sono una stringa")
     (let ((list-result (is-JSON (skip-whitespaces (string-to-asciilist json-string)))))
-    	(if (null (skip-whitespaces (more-input list-result))) 
+      (if (null (skip-whitespaces (more-input list-result))) 
           (parsed-obj list-result)
           (error "Error: Non ho la stringa vuota alla fine - Ciuccio a rotelle")))))
 
@@ -85,9 +85,10 @@
   (cond
    ((equal double-quote (first ascii-list)) ; se è una stringa deve iniziare con DOUBLE-QUOTE
     (is-string ascii-list))
-   ((or (equal { (first ascii-list)) (equal [ (first ascii-list)))  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;da implementare il caso in cui c'è [, dunque un array o un numero
+   ((or (equal { (first ascii-list)) (equal [ (first ascii-list)))  
     (is-JSON ascii-list))
-   (T (error "sono u numero"))))
+   ((is-digit (first ascii-list)) (parse-number ascii-list))
+   (T (error "Non sono un valore"))))
 
 
 
@@ -119,8 +120,46 @@
    ((null ascii-list) (error "sono skip-char-rest e ho la lista vuota"))
    ((equal (first ascii-list) double-quote) (rest ascii-list))
    (T (skip-char-rest (rest ascii-list)))))
+   
+   
+(defun parse-number (ascii-list)
+  (let ((num-result (my-parse-int ascii-list)))
+    (cond 
+     ((and (equal dot (first (more-input num-result)) (is-digit (second (more-input num-result)))) 
+      (let ((decimal-result (my-parse-int (rest (more-input num-result)) '(46))))
+        (list (skip-whitespaces (more-input decimal-result)) (parse-float (asciilist-to-string (append (parsed-obj num-result) (parsed-obj decimal-result)))))))
+      (T (list (skip-whitespaces (more-input num-result)) (parse-int1 (reverse (parsed-obj num-result))))))))
+
+(defun my-parse-int (ascii-list &optional (numlist nil))
+  (if (and (not (null ascii-list)) (is-digit (first ascii-list)))
+    (my-parse-int (rest ascii-list) (append numlist (list (first ascii-list))))
+  (list ascii-list numlist)))
+ 
+
+;;; parse-int1 definition:
+;;; input: una lista
+;;; output: restituisce la lista parsata a numero
+;;; errori: niente errori lanciati
+(defun parse-int1 (list &optional (acc 1))
+ (if (null list) 
+      0
+     (+ (* (- (first list) 48) acc) (parse-int1 (rest list) (* acc 10)))))
 
 
+;;; is-digit definition
+;;; input: un codice ascii
+;;; output: true --> se è un numero
+          ; false --> se non è un numero
+;;; errori: non vengono lanciati errori
+(defun is-digit (ascii-num)
+  (if (null ascii-num) 
+    (error "Sono is-digit: ho un null")
+  (let ((num (- ascii-num 48)))
+    (if (and (>= num 0) (<= num 9))
+        T
+       NIL))))
+
+     
 ;;; HELPER FUNCTION
 
 ;;; questa funzione ritorna il MORE-INPUT
@@ -134,7 +173,7 @@
 ;;; questa funzione skippa gli spazi bianchi
 (defun skip-whitespaces (string-ascii)
   (string-to-asciilist 
-   	(string-left-trim spazio 
+    (string-left-trim spazio 
                       (asciilist-to-string string-ascii))))
 
 ;;; questa funzione effettua una conversione da string ad asciilist
@@ -143,7 +182,7 @@
 
 ;;; questa funzione effettua una conversione da asciilist a string
 (defun asciilist-to-string (ascii-list)
-	(coerce (mapcar 'code-char ascii-list) 'string))
+  (coerce (mapcar 'code-char ascii-list) 'string))
 
 ;;; PARAMETERS DEFINITION
 
@@ -152,6 +191,7 @@
 (defparameter ] (char-code #\]))
 (defparameter { (char-code #\{))
 (defparameter } (char-code #\}))
+(defparameter dot (char-code #\.))
 (defparameter comma (char-code #\,))
 (defparameter colon (char-code #\:))
 (defparameter double-quote (char-code #\"))
