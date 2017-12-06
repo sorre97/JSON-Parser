@@ -15,8 +15,61 @@
     (let ((list-result (is-JSON (skip-whitespaces (string-to-asciilist json-string)))))
       (if (null (skip-whitespaces (more-input list-result))) 
           (parsed-obj list-result)
-          (error "Error: Non ho la stringa vuota alla fine - Ciuccio a rotelle")))))
+          (error "Error: Non ho la stringa vuota alla fine - Ciuccio a rotelle by Simone")))))
 
+;;; json-get definition:
+;;; input: OBJ e FIELDS
+;;; output: il valore associato alla catena di campi presenti in fields
+;;; errori: se OBJ non è né un JSON-OBJ né un JSON-ARRAY
+(defun json-get (obj &rest fields)
+  (cond
+   ((equal 'json-obj (first obj)) (get-obj (rest obj) fields))
+   ((equal 'json-array (first obj)) (get-arr (rest obj) fields))
+   (T (error "sono json-get e non ho né un array né un oggetto"))))
+  
+
+;;; get-obj definition:
+;;; input: GET-OBJ prende in ingresso un OBJ senza funtore!!!
+(defun get-obj (obj fields) 
+  (cond
+   ((null obj) (error "sono un oggetto vuoto"))
+   ((null fields) (error "fields è null"))
+   ((null (rest fields)) (get-assoc obj fields))
+   (T (let ((get-assoc-result (get-assoc obj fields)))
+        (if (listp get-assoc-result)
+            (cond
+             ((equal 'json-obj (first get-assoc-result)) (get-obj (rest get-assoc-result) (rest fields)))
+             ((equal 'json-array (first get-assoc-result)) (get-arr (rest get-assoc-result) (rest fields)))
+             (T (error "sono get-obj e ho una lista ma non ho né un array né un oggetto")))
+          (error "sono get-obj e fields non è vuoto e non ho una lista"))))))
+
+;;; get-arr definition:
+(defun get-arr (array fields)
+  (cond
+   ((null array) (error "sono un array vuoto"))
+   ((null fields) (error "fields è null"))
+   ((null (rest fields)) (get-assoc-arr array fields))
+   (T (let ((get-assoc-result (get-assoc-arr array fields)))
+        (if (listp get-assoc-result)
+            (cond
+             ((equal 'json-obj (first get-assoc-result)) (get-obj (rest get-assoc-result) (rest fields)))
+             ((equal 'json-array (first get-assoc-result)) (get-arr (rest get-assoc-result) (rest fields)))
+             (T (error "sono get-arr e ho una lista ma non ho né un array né un oggetto")))
+          (error "sono get-arr e fields non è vuoto e non ho una lista"))))))
+
+;;; get-assoc-arr definition:
+(defun get-assoc-arr (arr fields)
+  (if (and (numberp (first fields)) (< (first fields) (length arr)) (>= (first fields) 0))
+      (nth (first fields) arr)
+    (error "sono get-assoc-arr e ho un index out of bounds oppure non ho un numero in FIELDS")))
+
+
+;;; get-assoc definition:
+(defun get-assoc (obj fields)
+  (cond
+   ((null obj) (error "sono get-assoc e non ho trovato la chiave"))
+   ((equal (first fields) (get-key (first obj))) (get-value (first obj)))
+   (T (get-assoc (rest obj) fields))))
 
 
 ;;; is-JSON definition:
@@ -180,6 +233,17 @@
      
 ;;; HELPER FUNCTION
 
+;;; questa funzione restituisce la chiave della coppia
+;;; e.g. (chiave valore)
+(defun get-key (coppia)
+  (first coppia))
+  
+  
+;;; questa funzione restituisce il valore della coppia
+;;; e.g. (chiave valore)
+(defun get-value (coppia)
+  (second coppia))
+
 ;;; questa funzione ritorna il MORE-INPUT
 (defun more-input (list)
   (first list))
@@ -215,5 +279,3 @@
 (defparameter double-quote (char-code #\"))
 
 ;;;; END OF FILE - json-parsing.lisp 
-
-
