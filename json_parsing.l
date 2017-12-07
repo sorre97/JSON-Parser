@@ -15,7 +15,7 @@
     (let ((list-result (is-JSON (skip-whitespaces (string-to-asciilist json-string)))))
       (if (null (skip-whitespaces (more-input list-result))) 
           (parsed-obj list-result)
-          (error "Error: Non ho la stringa vuota alla fine - Ciuccio a rotelle by Simone")))))
+          (error "Error: Non ho la stringa vuota alla fine - Ciuccio a rotelle by SORRENTINO e ROTA")))))
 
 ;;; json-get definition:
 ;;; input: OBJ e FIELDS
@@ -230,7 +230,70 @@
         T
        NIL))))
 
+;;; json-load definition:
+;;; input: name of the file path
+;;; output: a JSON_OBJ
+;;; errori: (1) se non viene trovato il file
+;;;         (2) se non è una stringa in sintassi json
+(defun json-load (filename)
+  (with-open-file (stream filename)
+    (let ((json-string (make-string (file-length stream))))
+      (read-sequence json-string stream)
+      (json-parse json-string))))
+  
+;;; json-write definition:
+(defun json-write (json-obj filename)
+  (with-open-file (stream  filename
+                           :direction :output
+                           :if-exists :supersede
+                           :if-does-not-exist :create )
+    (format stream (write-json json-obj))))
+               
+;;; write-json definition:
+(defun write-json (json-obj)
+  (if (listp json-obj)
+      (cond ((equal 'json-obj (first json-obj)) (concatenate 'string "{" (write-obj (rest json-obj))))
+            ((equal 'json-array (first json-obj)) (concatenate 'string "[" (write-arr (rest json-obj))))
+            (T (error "sono write-json e non ho un funtore corretto")))
+    (error "sono write-json e non ho una lista")))
+   
+;;; write-obj definition:
+(defun write-obj (json-obj)
+  (cond ((null json-obj) "}")
+        (T (concatenate 'string (write-members json-obj) "}"))))
+        
+;;; write-arr definition:
+(defun write-arr (json-obj)
+  (cond ((null json-obj) "]")
+        (T (concatenate 'string (write-elements json-obj) "]"))))
+        
+;;; write-elements definition:
+(defun write-elements (json-obj)
+  (cond ((null (rest json-obj)) (write-value (first json-obj)))
+        (T (concatenate 'string (write-value (first json-obj)) ", " (write-elements (rest json-obj))))))
+       
+;;; write-members definition:
+(defun write-members (json-obj)
+  (cond ((null (rest json-obj)) (write-pair (first json-obj)))
+        (T (concatenate 'string (write-pair (first json-obj)) ", " (write-members (rest json-obj))))))
+
+;;; write-pair definition:
+(defun write-pair (json-obj)
+  (concatenate 'string (write-key (first json-obj)) " : " (write-value (second json-obj))))
+  
+;;; write-key definition:
+(defun write-key (key)
+  (if (stringp key) 
+      (concatenate 'string "\"" key "\"")
+    (error "Sono write-key e la chiave non è una stringa")))     
      
+;;; write-value definition:
+(defun write-value (value) 
+  (cond ((stringp value) (concatenate 'string "\"" value "\""))
+        ((numberp value) (write-to-string value))
+        (T (write-json value))))
+
+
 ;;; HELPER FUNCTION
 
 ;;; questa funzione restituisce la chiave della coppia
