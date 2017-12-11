@@ -4,8 +4,8 @@
 
 
 "cognome" : "sorrentino",
-		"prova" : 		{"provazingaro" : -123.1231314},
-		"bhozingarobastardo" : ["odio", "gli", "zingari", "al",
+		"oggettoJSON" : 		{"chiave" : -123.1231314},
+		"lezioni" : ["LP", "LC", "RETI & SO", "FISICA",
 
 
 
@@ -14,4 +14,4 @@
 
 
 
-        200, "%"]}
+        "media", 200.1314314211234, "%"]}
