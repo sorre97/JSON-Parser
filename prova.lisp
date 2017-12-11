@@ -5,7 +5,7 @@
 
 ;;; PARAMETERS DEFINITION
 ;;; (defparameter spazio '(#\Space #\Tab #\Newline #\Null))
-(defparameter spazio '(#\Null #\Space #\Return #\Å #\Newline #\Backspace  #\Tab  #\Linefeed  #\Page  #\Return  #\Rubout)) ;;;funzione modificata
+(defparameter spazio '(#\Space #\Return #\Newline #\Backspace #\Tab)) ;;;funzione modificata
 (defparameter [ (char-code #\[))
 (defparameter ] (char-code #\]))
 (defparameter { (char-code #\{))
