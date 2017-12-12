@@ -269,13 +269,16 @@
 ;;; output: a JSON_OBJ
 ;;; errori: (1) se non viene trovato il file
 ;;;         (2) se non è una stringa in sintassi json
+
 (defun json-load (filename)
   (with-open-file (stream filename
+                          :external-format
                           :direction :input
                           :if-does-not-exist :error)
-		  (let ((json-string (make-string (file-length stream))))
-		    (read-sequence json-string stream)
-		    (json-parse json-string))))
+    (let ((json-string (make-string (file-length stream))))
+      (read-sequence json-string stream)
+      (json-parse json-string))))
+
 
 ;;; json-write definition:
 (defun json-write (json-obj filename)
