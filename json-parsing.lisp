@@ -1,7 +1,12 @@
-;;;; json-parsing.lisp
-;;;; Creators: Sorrentino, Rota, Mottadelli
-;;;; "Premature optimization is the root of all evil"
-;;;; "42 is the only solution."
+;;;; -*- Mode: Lisp -*-
+;;; json-parsing.pl
+
+;;; Members: 
+;;; Sorrentino Alessandro 815999
+;;; Rota Claudio 816050
+;;; Mottadelli Simone Paolo 820786
+
+;;; "Premature optimization is the root of all evil"
 
 
 ;;; PARAMETERS DEFINITION
