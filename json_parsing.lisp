@@ -7,7 +7,7 @@
 ;;; PARAMETERS DEFINITION
 ;;; (defparameter spazio '(#\Space #\Tab #\Newline #\Null))
 
-(defparameter spazio '(#\Space #\Return #\Newline #\Backspace #\Tab)) ;;;funzione modificata nuovamente
+(defparameter spazio '(#\Space #\Return #\Newline #\Backspace #\Tab))
 (defparameter [ (char-code #\[))
 (defparameter ] (char-code #\]))
 (defparameter { (char-code #\{))
@@ -28,12 +28,12 @@
 
 (defun json-parse (json-string)
   (if (not (stringp json-string)) 
-      (error "ERROR: non sono una stringa")
+      (error "syntax error")
     (let ((list-result 
 	   (is-JSON (skip-whitespaces (string-to-asciilist json-string)))))
       (if (null (skip-whitespaces (more-input list-result))) 
           (parsed-obj list-result)
-        (error "Error: Non ho la stringa vuota alla fine")))))
+        (error "syntax error")))))
 
 ;;; json-get definition:
 ;;; input: OBJ e FIELDS
@@ -43,15 +43,15 @@
 (defun json-get (obj &rest fields)
   (cond ((equal 'json-obj (first obj)) (get-obj (rest obj) fields))
         ((equal 'json-array (first obj)) (get-arr (rest obj) fields))
-        (T (error "sono json-get e non ho né un array né un oggetto"))))
+        (T (error "syntax error"))))
 
 
 ;;; get-obj definition:
 ;;; input: GET-OBJ prende in ingresso un OBJ senza funtore!!!
 
 (defun get-obj (obj fields) 
-  (cond ((null obj) (error "sono un oggetto vuoto"))
-        ((null fields) (error "fields è null"))
+  (cond ((null obj) (error "syntax error"))
+        ((null fields) (error "syntax error"))
         ((null (rest fields)) (get-assoc obj fields))
         (T (let ((get-assoc-result (get-assoc obj fields)))
              (if (listp get-assoc-result)
@@ -59,15 +59,15 @@
 			(get-obj (rest get-assoc-result) (rest fields)))
                        ((equal 'json-array (first get-assoc-result))
 			(get-arr (rest get-assoc-result) (rest fields)))
-                       (T (error "sono get-obj e ho una lista ma non ho né un array né un oggetto")))
-               (error "sono get-obj e fields non è vuoto e non ho una lista"))))))
+                       (T (error "syntax error")))
+               (error "syntax error"))))))
 
 
 ;;; get-arr definition:
 
 (defun get-arr (array fields)
-  (cond ((null array) (error "sono un array vuoto"))
-        ((null fields) (error "fields è null"))
+  (cond ((null array) (error "syntax error"))
+        ((null fields) (error "syntax error"))
         ((null (rest fields)) (get-assoc-arr array fields))
         (T (let ((get-assoc-result (get-assoc-arr array fields)))
              (if (listp get-assoc-result)
@@ -75,8 +75,8 @@
 			(get-obj (rest get-assoc-result) (rest fields)))
                        ((equal 'json-array (first get-assoc-result))
 			(get-arr (rest get-assoc-result) (rest fields)))
-                       (T (error "sono get-arr e ho una lista ma non ho né un array né un oggetto")))
-               (error "sono get-arr e fields non è vuoto e non ho una lista"))))))
+                       (T (error "syntax error")))
+               (error "syntax error"))))))
 
 
 ;;; get-assoc-arr definition:
@@ -86,13 +86,13 @@
 	   (< (first fields) (length arr)) 
 	   (>= (first fields) 0))
       (nth (first fields) arr)
-    (error "sono get-assoc-arr e ho un index out of bounds oppure non ho un numero in FIELDS")))
+    (error "syntax error")))
 
 
 ;;; get-assoc definition:
 
 (defun get-assoc (obj fields)
-  (cond ((null obj) (error "sono get-assoc e non ho trovato la chiave"))
+  (cond ((null obj) (error "syntax error"))
         ((equal (first fields) (get-key (first obj))) (get-value (first obj)))
         (T (get-assoc (rest obj) fields))))
 
@@ -108,7 +108,7 @@
 	 (is-array (skip-whitespaces (rest ascii-list))))
         ((equal { (first ascii-list))
 	 (is-object (skip-whitespaces (rest ascii-list))))
-        (T (error "ERROR: Non ho trovato né una quadra né una graffa"))))
+        (T (error "syntax error"))))
 
 
 
@@ -125,7 +125,7 @@
              (if (equal } (first (more-input is-member-result)))
                  (list (skip-whitespaces (rest (more-input is-member-result)))
 		       (append (list 'json-obj) (parsed-obj is-member-result)))
-               (error "l'oggetto non ha la parentesi }"))))))                   
+               (error "syntax error"))))))                   
 
 
 
@@ -138,7 +138,7 @@
 	     (if (equal ] (first (more-input is-element-result)))
 		 (list (skip-whitespaces (rest (more-input is-element-result)))
 		       (append (list 'json-array) (parsed-obj is-element-result)))
-	       (error "l'array non ha la parentesi ]"))))))
+	       (error "syntax error"))))))
 
 
 ;;; is-element definition
@@ -179,7 +179,7 @@
 ;;; errori: (2) se non viene trovato il simbolo ':' tra la chiave e il valore
 
 (defun is-pair (ascii-list)
-  (if (not (equal double-quote (first ascii-list))) (error "sono is-pair e non ho una stringa nella chiave")
+  (if (not (equal double-quote (first ascii-list))) (error "syntax error")
     (let ((is-string-result (is-string (skip-whitespaces ascii-list)))) 
       (cond ((equal colon (first (more-input is-string-result))) 
              (let ((is-value-result
@@ -187,7 +187,7 @@
                (list (more-input is-value-result)
 		     (list (list (parsed-obj is-string-result) 
 				 (parsed-obj is-value-result))))))
-            (T (error "non ho trovato il :"))))))
+            (T (error "syntax error"))))))
 
 
 ;;; is-value definition:
@@ -209,7 +209,7 @@
          (let ((number-result (parse-number (rest ascii-list))))
            (list (more-input number-result) (- (parsed-obj number-result)))))
         ((is-digit (first ascii-list)) (parse-number ascii-list))
-        (T (error "Non sono un valore"))))
+        (T (error "syntax error"))))
 
 
 ;;; is-string definition:
@@ -235,11 +235,12 @@
 
 ;;; skip-char-rest definition:
 ;;; input: una lista di caratteri ascii, ASCII-LIST
-;;; output: tutto ciò che c'è dopo un DOUBLE-QUOTE, cioè il MORE-INPUT di is-string
+;;; output: tutto ciò che c'è dopo un DOUBLE-QUOTE, cioè il MORE-INPUT di
+;;; is-string
 ;;; errori: viene lanciato un errore se ASCII-LIST è la stringa vuota
 
 (defun skip-char-rest (ascii-list)
-  (cond ((null ascii-list) (error "sono skip-char-rest e ho la lista vuota"))
+  (cond ((null ascii-list) (error "syntax error"))
         ((equal (first ascii-list) double-quote) (rest ascii-list))
         (T (skip-char-rest (rest ascii-list)))))
 
@@ -293,7 +294,7 @@
 
 (defun is-digit (ascii-num)
   (if (null ascii-num) 
-      (error "Sono is-digit: ho un null")
+      (error "syntax error")
     (let ((num (- ascii-num 48)))
       (if (and (>= num 0) (<= num 9))
           T
@@ -334,8 +335,8 @@
 	     (concatenate 'string "{" (write-obj (rest json-obj))))
             ((equal 'json-array (first json-obj)) 
 	     (concatenate 'string "[" (write-arr (rest json-obj))))
-            (T (error "sono write-json e non ho un funtore corretto")))
-    (error "sono write-json e non ho una lista")))
+            (T (error "syntax error")))
+    (error "syntax error")))
 
 
 ;;; write-obj definition:
@@ -379,7 +380,7 @@
 (defun write-key (key)
   (if (stringp key) 
       (concatenate 'string "\"" key "\"")
-    (error "Sono write-key e la chiave non è una stringa")))     
+    (error "syntax error")))     
 
 
 ;;; write-value definition:
@@ -432,7 +433,7 @@
 
 (defun string-to-asciilist (string)
   (if (not (stringp string))
-      (error "sono string-to-asciilist e non ho una stringa come argomento")
+      (error "syntax error")
     (map 'list #'char-code string)))
 
 
