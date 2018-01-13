@@ -36,6 +36,10 @@ json_parse(JSONAscii, Object) :-
 % JSON get definition:
 % json_get/3
 
+% Case in which is given the empty list
+json_get(X, [], X) :-
+	!.
+	
 % Case in which a json_array is found and there might be
 % more than an index
 json_get(json_array(Elements), [Index | Rest], Result) :-

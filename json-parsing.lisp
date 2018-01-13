@@ -46,7 +46,8 @@
 ;;; errori: se OBJ non è né un JSON-OBJ né un JSON-ARRAY
 
 (defun json-get (obj &rest fields)
-  (cond ((equal 'json-obj (first obj)) (get-obj (rest obj) fields))
+  (cond ((null (first fields)) obj) 
+        ((equal 'json-obj (first obj)) (get-obj (rest obj) fields))
         ((equal 'json-array (first obj)) (get-arr (rest obj) fields))
         (T (error "syntax error"))))
 
