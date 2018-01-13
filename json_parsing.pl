@@ -21,7 +21,7 @@ json_parse(JSONString, Object) :-
     !,
     atom_string(JSONAtom, JSONString),
     json_parse(JSONAtom, Object).
-    
+
 
 % Case in which JSONAscii is given as a list of ascii codes
 json_parse(JSONAscii, Object) :-
@@ -38,8 +38,8 @@ json_parse(JSONAscii, Object) :-
 
 % Case in which is given the empty list
 json_get(X, [], X) :-
-	!.
-	
+    !.
+
 % Case in which a json_array is found and there might be
 % more than an index
 json_get(json_array(Elements), [Index | Rest], Result) :-
@@ -449,7 +449,7 @@ parse_int(List, Integer, MoreInput) :-
     ListNum \= [], % it means that we haven't found a number
     number_codes(Integer1, ListNum),
     Integer is Integer1 * (-1).
-   
+
 % Case in which number is positive but whithout plus sign
 parse_int(List, Integer, MoreInput) :-
     skip_space(List, List1),
@@ -457,7 +457,7 @@ parse_int(List, Integer, MoreInput) :-
     parse_int1(List1, ListNum, MoreInput),
     ListNum \= [], % it means that we haven't found a number
     number_codes(Integer, ListNum).
-    
+
 % Recursive case -> everytime if X is a digit, it is
 % collected in a Temp list and we proceede recursively
 % until X isn't a digit anymore
@@ -495,8 +495,8 @@ parse_float(List, Float, MoreInput) :-
     append(FirstPart, DecimalCodes, FloatCodes),
     number_codes(Float1, FloatCodes),
     Float is Float1 * (-1).
- 
-% Case in which the number is positive, but without 
+
+% Case in which the number is positive, but without
 % plus sign
 parse_float(List, Float, MoreInput) :-
     skip_space(List, List1),
@@ -507,7 +507,7 @@ parse_float(List, Float, MoreInput) :-
     DecimalCodes \= [],
     append(IntegerCodes, [0'.], FirstPart),
     append(FirstPart, DecimalCodes, FloatCodes),
-    number_codes(Float, FloatCodes).    
+    number_codes(Float, FloatCodes).
 
 % Get_value - Get_value1 definition:
 % Get_value/3
